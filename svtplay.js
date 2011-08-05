@@ -23,7 +23,7 @@
 (function(plugin) {
 
   plugin.createService("SVT Play", "svtplay:start", "tv", true,
-		       plugin.config.path + "svtplay_square.png");
+		       plugin.path + "svtplay_square.png");
 
   var opensearch = new Namespace("http://a9.com/-/spec/opensearch/1.1/");
   var svtplay    = new Namespace("http://xml.svtplay.se/ns/playrss");
@@ -113,7 +113,7 @@
 
   plugin.addURI("svtplay:title:([0-9,]*):(.*)", function(page, id, title) {
     page.contents = "items";
-    page.metadata.logo = plugin.config.path + "svtplay.png";
+    page.metadata.logo = plugin.path + "svtplay.png";
     page.metadata.title = title;
     pageController(page, function(offset) {
       return showtime.httpGet("http://xml.svtplay.se/v1/title/list/" + id, {
@@ -125,7 +125,7 @@
 
 
   plugin.addURI("svtplay:video:([0-9,]*):(.*)", function(page, id, title) {
-    page.metadata.logo = plugin.config.path + "svtplay.png";
+    page.metadata.logo = plugin.path + "svtplay.png";
     page.metadata.title = title;
     pageController(page, function(offset) {
       return showtime.httpGet("http://xml.svtplay.se/v1/video/list/" + id, {
@@ -136,7 +136,7 @@
   });
 
   plugin.addURI("svtplay:senaste", function(page) {
-    page.metadata.logo = plugin.config.path + "svtplay.png";
+    page.metadata.logo = plugin.path + "svtplay.png";
     page.metadata.title = "Senaste program från SVT Play";
     pageController(page, function(offset) {
       return showtime.httpGet("http://xml.svtplay.se/v1/video/list/96241,96242,96243,96245,96246,96247,96248", {
@@ -154,7 +154,7 @@
 
     page.type = "directory";
     page.contents = "items";
-    page.metadata.logo = plugin.config.path + "svtplay.png";
+    page.metadata.logo = plugin.path + "svtplay.png";
     page.metadata.title = "SVT Play";
 
     var svtplay = new Namespace("http://xml.svtplay.se/ns/playopml");
@@ -185,7 +185,7 @@
   
 
   plugin.addSearcher(
-    "SVT Play", plugin.config.path + "svtplay_icon.png",
+    "SVT Play", plugin.path + "svtplay_icon.png",
     function(page, query) {
       
       pageController(page, function(offset) {
