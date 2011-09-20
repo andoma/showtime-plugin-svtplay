@@ -88,27 +88,34 @@
 
   function videoPopulator(page, item) {
 
-      var metadata = {
-	title: item.svtplay::titleName.toString() + " - " + item.title
-      };
+    var metadata = {
+      title: item.svtplay::titleName.toString() + " • " + item.title
+    };
+    
+    var best = bestMedia(item);
       
-      var best = bestMedia(item);
-      
-      if(best === undefined)
-	return;
+    if(best === undefined)
+      return;
 
-      metadata.icon = item.media::thumbnail.@url;
-      metadata.description = item.description;
+    metadata.icon = item.media::thumbnail.@url;
+    metadata.description = item.description;
 
-      var duration =  parseInt(best.@duration);
+    var duration =  parseInt(best.@duration);
+    
+    if(duration > 0)
+      metadata.duration = duration;
+     
+    var url = "videoparams:" + showtime.JSONEncode({
+      title: metadata.title,
+      canonicalUrl: item.guid,
+      sources: [{
+	url: best.@url
+      }]
+    });
 
-      if(duration > 0)
-	metadata.duration = duration;
-
-      page.appendItem(best.@url,
-		      "video", metadata);
+    page.appendItem(url, "video", metadata);
   };
-
+  
 
 
   plugin.addURI("svtplay:title:([0-9,]*):(.*)", function(page, id, title) {
