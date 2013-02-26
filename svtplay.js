@@ -18,7 +18,7 @@
 (function(plugin) {
 
   plugin.createService("SVT Play", "svtplay:start", "tv", true,
-		       plugin.path + "svtplay_square.png");
+                       plugin.path + "svtplay_square.png");
 
   var baseUrl = "http://api.welovepublicservice.se";
 
@@ -49,10 +49,8 @@
       page.metadata.title = response.title;
     
       for each(var showUri in response.shows) {
-          var showUrl = "http://api.welovepublicservice.se" + showUri;
-          showtime.trace("calling " + showUrl); 
+          var showUrl = baseUrl + showUri;
           var show = showtime.JSONDecode(showtime.httpGet(showUrl));
-          showtime.trace("show title:" + show.title);
           page.appendItem("svtplay:show:" + show.id, "directory", {title:show.title});
         }
       
@@ -64,26 +62,26 @@
       page.metadata.logo = plugin.path + "svtplay.png";
       page.type ="directory";
       
-      var url = "http://api.welovepublicservice.se/v1/show/" + id + "/";
+      var url = baseUrl + "/v1/show/" + id + "/";
       var response = showtime.JSONDecode(showtime.httpGet(url));
       
       page.metadata.title = response.title;
       
       for each(var epUri in response.episodes) {
-          var epUrl = "http://api.welovepublicservice.se" + epUri;
+          var epUrl = baseUrl + epUri;
           var episode = showtime.JSONDecode(showtime.httpGet(epUrl));
           
           page.appendItem("svtplay:episode:" + episode.url, "video", 
-                        {title:episode.title, icon:episode.thumbnail_url});
-      }
+                          {title:episode.title, icon:episode.thumbnail_url});
+        }
 
       page.loading = false;      
-  });
+    });
 
   plugin.addURI("svtplay:episode:(.*)", function(page, url) {
       page.metadata.logo = plugin.path + "svtplay.png";
       page.type = "video";
-        
+      
       var contents = showtime.JSONDecode(showtime.httpGet(url, {output: "json"}));
       
       var videoUrl = null;
