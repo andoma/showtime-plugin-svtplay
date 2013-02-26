@@ -22,11 +22,35 @@
 
   var baseUrl = "http://api.welovepublicservice.se";
 
+  function getVideoUrl(contents) {
+    var videoUrl = null;
+    var foundIOS = false;
+    
+    for each(var videoRef in contents.video.videoReferences) {
+        videoUrl = videoRef.url;
+        if(videoRef.playerType == "ios") {
+          foundIOS = true;
+          break;
+        }          
+      }
+    
+    if(!foundIOS)
+      videoUrl = videoUrl.replace("/z/", "/i/").replace("/manifest.f4m", "/master.m3u8"); //even if not in the list of streams, it may exist    
+
+    return videoUrl;
+  }
+
+  function appendChannel(page, name) {
+    page.appendItem("svtplay:channel:" + name, "video", {title:name});
+  }
+
   plugin.addURI("svtplay:start", function(page) {
       page.type = "directory";
       page.contents = "items";
       page.metadata.logo = plugin.path + "svtplay.png";
       page.metadata.title = "SVT Play";
+
+      page.appendItem("svtplay:channels", "directory", {title:"Kanaler"});
       
       var args = {format: "json"}; 
       var url = baseUrl + "/v1/category/";
@@ -37,8 +61,30 @@
         }
       page.loading = false;
     });
+
+  plugin.addURI("svtplay:channels", function(page) {
+      page.type = "directory";
+      page.contents = "items";
+      page.metadata.title = "Kanaler";
+      
+      appendChannel(page, "SVT1");
+      appendChannel(page, "SVT2");
+      appendChannel(page, "Barnkanalen");
+      appendChannel(page, "SVT24");
+      appendChannel(page, "Kunskapskanalen");
+
+      page.loading = false;
+    });
   
-  plugin.addURI("svtplay:category:([0-9,]*)", function(page, id) {
+  plugin.addURI("svtplay:channel:(.*)", function(page, channelName) {
+      var url = "http://www.svtplay.se/kanaler/" + channelName;
+      var result = showtime.JSONDecode(showtime.httpGet(url, {output: "json"}));
+    
+      page.type = "video";
+      page.source = getVideoUrl(result);         
+    });
+  
+    plugin.addURI("svtplay:category:([0-9,]*)", function(page, id) {
       page.contents = "items";
       page.metadata.logo = plugin.path + "svtplay.png";
       page.type ="directory";
@@ -83,22 +129,8 @@
       page.type = "video";
       
       var contents = showtime.JSONDecode(showtime.httpGet(url, {output: "json"}));
-      
-      var videoUrl = null;
-      var foundIOS = false;
-      
-      for each(var videoRef in contents.video.videoReferences) {
-          videoUrl = videoRef.url;
-          if(videoRef.playerType == "ios") {
-            foundIOS = true;
-            break;
-          }          
-        }
-      
-      if(!foundIOS)
-        videoUrl = videoUrl.replace("/z/", "/i/").replace("/manifest.f4m", "/master.m3u8"); //even if not in the list of streams, it may exist
-      
-      page.source = videoUrl;
+      page.source = getVideoUrl(contents);
       
     });
+
 })(this);
