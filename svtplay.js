@@ -1,10 +1,5 @@
 /**
- * SVT play plugin using xml.svtplay.se API
- *
- * The hardcoded URLs has been extracted from 
- *     http://svtplay.se/mobil/deviceconfiguration.xml
- *
- *  Copyright (C) 2010 Andreas Öman
+ * SVT play plugin using http://api.welovepublicservice.se/ API
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
