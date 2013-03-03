@@ -90,17 +90,36 @@
       page.type ="directory";
       
       var url = baseUrl + "/v1/category/" + id + "/";
-      var response = showtime.JSONDecode(showtime.httpGet(url));
-      
+      var response = showtime.JSONDecode(showtime.httpGet(url, {
+	limit: 1}));
       page.metadata.title = response.title;
-    
-      for each(var showUri in response.shows) {
-          var showUrl = baseUrl + showUri;
-          var show = showtime.JSONDecode(showtime.httpGet(showUrl));
-          page.appendItem("svtplay:show:" + show.id, "directory", {title:show.title});
+
+
+      url = baseUrl + "/v1/show/";
+
+
+      var offset = 0;
+
+      function loader() {
+	var response = showtime.JSONDecode(showtime.httpGet(url, {
+	  category: id,
+	  full: false,
+	  order_by: "title",
+	  offset: offset
+	}));
+
+	offset = response.meta.offset + response.meta.limit;
+
+	for each(var show in response.objects) {
+          var showUrl = baseUrl + show.resource_uri;
+          page.appendItem("svtplay:show:" + show.id, "directory", {
+	    title:show.title});
         }
-      
-      page.loading = false;      
+	return offset < response.meta.total_count;
+      }
+      loader();
+      page.loading = false;
+      page.paginator = loader;
     });
 
   plugin.addURI("svtplay:show:([0-9,]*)", function(page, id) {
