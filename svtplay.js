@@ -94,9 +94,7 @@
 	limit: 1}));
       page.metadata.title = response.title;
 
-
       url = baseUrl + "/v1/show/";
-
 
       var offset = 0;
 
@@ -128,20 +126,36 @@
       page.type ="directory";
       
       var url = baseUrl + "/v1/show/" + id + "/";
-      var response = showtime.JSONDecode(showtime.httpGet(url));
-      
+      var response = showtime.JSONDecode(showtime.httpGet(url, {
+	  limit: 1}));
       page.metadata.title = response.title;
-      
-      for each(var epUri in response.episodes) {
-          var epUrl = baseUrl + epUri;
-          var episode = showtime.JSONDecode(showtime.httpGet(epUrl));
-          
-          page.appendItem("svtplay:episode:" + episode.url, "video", 
-                          {title:episode.title, icon:episode.thumbnail_url});
-        }
 
-      page.loading = false;      
+      url = baseUrl + "/v1/episode/";
+      var offset = 0;
+
+      function loader() {
+	var response = showtime.JSONDecode(showtime.httpGet(url, {
+	  show: id,
+	  order_by: "-date_broadcasted",
+	  offset: offset
+	}));
+
+	offset = response.meta.offset + response.meta.limit;
+
+	for each(var e in response.objects) {
+	    page.appendItem("svtplay:episode:" + e.url, "video", {
+	      title: e.title,
+	      icon: e.thumbnail_url,
+	      duration: parseInt(e.length) * 60
+	    });
+        }
+	return offset < response.meta.total_count;
+      }
+      loader();
+      page.loading = false;
+      page.paginator = loader;
     });
+
 
   plugin.addURI("svtplay:episode:(.*)", function(page, url) {
       page.metadata.logo = plugin.path + "svtplay.png";
