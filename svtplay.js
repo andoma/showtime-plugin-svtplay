@@ -82,6 +82,7 @@
     
       page.type = "video";
       page.source = getVideoUrl(result);         
+      page.loading = false;
     });
   
     plugin.addURI("svtplay:category:([0-9,]*)", function(page, id) {
@@ -160,7 +161,8 @@
   plugin.addURI("svtplay:episode:(.*)", function(page, url) {
       page.metadata.logo = plugin.path + "svtplay.png";
       page.type = "video";
-      
+      page.loading = false;
+
       var contents = showtime.JSONDecode(showtime.httpGet(url, {output: "json"}));
       page.source = getVideoUrl(contents);
       
