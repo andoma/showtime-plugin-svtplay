@@ -164,8 +164,13 @@
       page.loading = false;
 
       var contents = showtime.JSONDecode(showtime.httpGet(url, {output: "json"}));
-      page.source = getVideoUrl(contents);
-      
+      page.source = "videoparams:" + showtime.JSONEncode({
+	canonicalUrl: 'svtplay:episode:' + url,
+	title: "SVT Play",
+	sources: [{
+	  url: getVideoUrl(contents)
+	}]
+      });
     });
 
 })(this);
