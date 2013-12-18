@@ -173,4 +173,19 @@
       });
     });
 
+
+  plugin.addURI("http://www.svtplay.se/(.*)", function(page, path) {
+      page.type = "video";
+      page.loading = false;
+
+      var contents = showtime.JSONDecode(showtime.httpGet("http://www.svtplay.se/"+path, {output: "json"}));
+      page.source = "videoparams:" + showtime.JSONEncode({
+	canonicalUrl: 'svtplay:episode:' + url,
+	title: "SVT Play",
+	sources: [{
+	  url: getVideoUrl(contents)
+	}]
+      });
+    });
+
 })(this);
