@@ -1,9 +1,9 @@
 {
-  "type": "javascript",
+  "type": "ecmascript",
   "id": "svtplay",
   "file": "svtplay.js",
   "showtimeVersion": "4.2",
-  "version": "2.6",
+  "version": "3.0",
   "category": "video",
   "author": "Andreas Öman, Erik Ahlner",
   "title": "SVT Play",

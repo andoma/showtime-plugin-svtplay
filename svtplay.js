@@ -26,7 +26,8 @@
     var videoUrl = null;
     var foundIOS = false;
     
-    for each(var videoRef in contents.video.videoReferences) {
+    for(var i in contents.video.videoReferences) {
+        var videoRef = contents.video.videoReferences[i];
         videoUrl = videoRef.url;
         if(videoRef.playerType == "ios") {
           foundIOS = true;
@@ -56,7 +57,8 @@
       var url = baseUrl + "/v1/category/";
       var categories = showtime.JSONDecode(showtime.httpGet(url, args));
       
-      for each (var category in categories.objects) {
+      for (var i in categories.objects) {
+          var category = categories.objects[i];
           page.appendItem("svtplay:category:" + category.id, "directory", {title:category.title});
         }
       page.loading = false;
@@ -109,7 +111,8 @@
 
 	offset = response.meta.offset + response.meta.limit;
 
-	for each(var show in response.objects) {
+	for(var i in response.objects) {
+          var show = response.objects[i];
           var showUrl = baseUrl + show.resource_uri;
           page.appendItem("svtplay:show:" + show.id, "directory", {
 	    title:show.title});
@@ -143,7 +146,8 @@
 
 	offset = response.meta.offset + response.meta.limit;
 
-	for each(var e in response.objects) {
+	for(var i in response.objects) {
+            var e = response.objects[i];
 	    page.appendItem("svtplay:episode:" + e.url, "video", {
 	      title: e.title,
 	      icon: e.thumbnail_url,
