@@ -15,181 +15,113 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-(function(plugin) {
 
-  plugin.createService("SVT Play", "svtplay:start", "tv", true,
-                       plugin.path + "svtplay_square.png");
+var http = require('showtime/http');
+var html = require('showtime/html');
+var site = 'http://www.svtplay.se';
 
-  var baseUrl = "http://api.welovepublicservice.se";
+plugin.createService("SVT Play", "svtplay:start", "tv", true,
+                     plugin.path + "svtplay_square.png");
 
-  function getVideoUrl(contents) {
-    var videoUrl = null;
-    var foundIOS = false;
-    
-    for(var i in contents.video.videoReferences) {
-        var videoRef = contents.video.videoReferences[i];
-        videoUrl = videoRef.url;
-        if(videoRef.playerType == "ios") {
-          foundIOS = true;
-          break;
-        }          
-      }
-    
-    if(!foundIOS)
-      videoUrl = videoUrl.replace("/z/", "/i/").replace("/manifest.f4m", "/master.m3u8"); //even if not in the list of streams, it may exist    
 
-    return videoUrl;
+plugin.addURI("svtplay:start", function(page) {
+
+  page.type = "directory";
+  page.contents = "items";
+  page.metadata.logo = plugin.path + "svtplay.png";
+  page.metadata.title = "SVT Play";
+
+  function addlink(href, title) {
+    page.appendItem(site + href, 'directory', { title: title });
   }
 
-  function appendChannel(page, name) {
-    page.appendItem("svtplay:channel:" + name, "video", {title:name});
+  addlink('/barn', 'Barn');
+  addlink('/dokumentar', 'Dokumentär');
+  addlink('/filmochdrama', 'Film och drama');
+  addlink('/kulturochnoje', 'Kultur och nöje');
+  addlink('/nyheter', 'Nyheter');
+  addlink('/samhalleochfakta', 'Samhälle och fakta');
+  addlink('/sport', 'Sport');
+});
+
+
+function getVideoUrl(contents) {
+  var videoUrl = null;
+  var foundIOS = false;
+
+  for(var i in contents.video.videoReferences) {
+    var videoRef = contents.video.videoReferences[i];
+    videoUrl = videoRef.url;
+    if(videoRef.playerType == "ios") {
+      foundIOS = true;
+      break;
+    }
   }
 
-  plugin.addURI("svtplay:start", function(page) {
-      page.type = "directory";
-      page.contents = "items";
-      page.metadata.logo = plugin.path + "svtplay.png";
-      page.metadata.title = "SVT Play";
-
-      page.appendItem("svtplay:channels", "directory", {title:"Kanaler"});
-      
-      var args = {format: "json"}; 
-      var url = baseUrl + "/v1/category/";
-      var categories = showtime.JSONDecode(showtime.httpGet(url, args));
-      
-      for (var i in categories.objects) {
-          var category = categories.objects[i];
-          page.appendItem("svtplay:category:" + category.id, "directory", {title:category.title});
-        }
-      page.loading = false;
-    });
-
-  plugin.addURI("svtplay:channels", function(page) {
-      page.type = "directory";
-      page.contents = "items";
-      page.metadata.title = "Kanaler";
-      
-      appendChannel(page, "SVT1");
-      appendChannel(page, "SVT2");
-      appendChannel(page, "Barnkanalen");
-      appendChannel(page, "SVT24");
-      appendChannel(page, "Kunskapskanalen");
-
-      page.loading = false;
-    });
-  
-  plugin.addURI("svtplay:channel:(.*)", function(page, channelName) {
-      var url = "http://www.svtplay.se/kanaler/" + channelName;
-      var result = showtime.JSONDecode(showtime.httpGet(url, {output: "json"}));
-    
-      page.type = "video";
-      page.source = getVideoUrl(result);         
-      page.loading = false;
-    });
-  
-    plugin.addURI("svtplay:category:([0-9,]*)", function(page, id) {
-      page.contents = "items";
-      page.metadata.logo = plugin.path + "svtplay.png";
-      page.type ="directory";
-      
-      var url = baseUrl + "/v1/category/" + id + "/";
-      var response = showtime.JSONDecode(showtime.httpGet(url, {
-	limit: 1}));
-      page.metadata.title = response.title;
-
-      url = baseUrl + "/v1/show/";
-
-      var offset = 0;
-
-      function loader() {
-	var response = showtime.JSONDecode(showtime.httpGet(url, {
-	  category: id,
-	  full: false,
-	  order_by: "title",
-	  offset: offset
-	}));
-
-	offset = response.meta.offset + response.meta.limit;
-
-	for(var i in response.objects) {
-          var show = response.objects[i];
-          var showUrl = baseUrl + show.resource_uri;
-          page.appendItem("svtplay:show:" + show.id, "directory", {
-	    title:show.title});
-        }
-	return offset < response.meta.total_count;
-      }
-      loader();
-      page.loading = false;
-      page.paginator = loader;
-    });
-
-  plugin.addURI("svtplay:show:([0-9,]*)", function(page, id) {
-      page.contents = "items";
-      page.metadata.logo = plugin.path + "svtplay.png";
-      page.type ="directory";
-      
-      var url = baseUrl + "/v1/show/" + id + "/";
-      var response = showtime.JSONDecode(showtime.httpGet(url, {
-	  limit: 1}));
-      page.metadata.title = response.title;
-
-      url = baseUrl + "/v1/episode/";
-      var offset = 0;
-
-      function loader() {
-	var response = showtime.JSONDecode(showtime.httpGet(url, {
-	  show: id,
-	  order_by: "-date_broadcasted",
-	  offset: offset
-	}));
-
-	offset = response.meta.offset + response.meta.limit;
-
-	for(var i in response.objects) {
-            var e = response.objects[i];
-	    page.appendItem("svtplay:episode:" + e.url, "video", {
-	      title: e.title,
-	      icon: e.thumbnail_url,
-	      duration: parseInt(e.length) * 60
-	    });
-        }
-	return offset < response.meta.total_count;
-      }
-      loader();
-      page.loading = false;
-      page.paginator = loader;
-    });
+  if(!foundIOS)
+    videoUrl = videoUrl.replace("/z/", "/i/").replace("/manifest.f4m", "/master.m3u8"); //even if not in the list of streams, it may exist
+  return 'hls:' + videoUrl;
+}
 
 
-  plugin.addURI("svtplay:episode:(.*)", function(page, url) {
-      page.metadata.logo = plugin.path + "svtplay.png";
-      page.type = "video";
-      page.loading = false;
+function getTitleFromDom(dom) {
+  var head = dom.root.getElementByTagName('head')[0];
+  var title = dom.root.getElementByTagName('title')[0];
+  return title.textContent;
+}
 
-      var contents = showtime.JSONDecode(showtime.httpGet(url, {output: "json"}));
-      page.source = "videoparams:" + showtime.JSONEncode({
-	canonicalUrl: 'svtplay:episode:' + url,
-	title: "SVT Play",
-	sources: [{
-	  url: getVideoUrl(contents)
-	}]
+
+plugin.addURI('http://www\.svtplay\.se/video/(.*)', function(page, path) {
+  page.type = "video";
+
+  var json = http.request(site + '/video/' + path, {
+    args: { output: 'json' }
+  });
+  var meta = JSON.parse(json);
+  var url = getVideoUrl(meta);
+  page.loading = false;
+  page.source = url;
+});
+
+
+plugin.addURI('http://www\.svtplay\.se/(.*)', function(page, path) {
+
+  var dom = html.parse(http.request(site + '/' + path));
+  page.type = "directory";
+  page.metadata.title = getTitleFromDom(dom);
+
+
+  var episodes = dom.root.getElementById('play_title-page__content--more-episodes');
+
+  if(episodes) {
+    var items = episodes.getElementByTagName('article');
+    for(var i = 0; i < items.length; i++) {
+      var item = items[i].getElementByTagName('h2')[0].getElementByTagName('a')[0];
+      var href = item.attributes.getNamedItem('href').value;
+      page.appendItem(site + href, 'video', {
+        title: item.textContent
       });
-    });
+    }
+  }
 
 
-  plugin.addURI("http://www.svtplay.se/(.*)", function(page, path) {
-      page.type = "video";
-      page.loading = false;
+  // Search for alphabetical list of items
 
-      var contents = showtime.JSONDecode(showtime.httpGet("http://www.svtplay.se/"+path, {output: "json"}));
-      page.source = "videoparams:" + showtime.JSONEncode({
-	canonicalUrl: 'svtplay:episode:' + url,
-	title: "SVT Play",
-	sources: [{
-	  url: getVideoUrl(contents)
-	}]
+  var alphabeticlist = dom.root.getElementById('playJs-alphabetic-list');
+  if(alphabeticlist) {
+    var articles = alphabeticlist.getElementByTagName('article');
+
+    for(var i = 0; i < articles.length; i++) {
+      var article = articles[i];
+      var title = article.attributes.getNamedItem('data-title').value;
+
+      var a = article.getElementByTagName('a')[0];
+      var href = a.attributes.getNamedItem('href').value;
+
+      page.appendItem(site + href, 'directory', {
+        title: title
       });
-    });
+    }
+  }
 
-})(this);
+});

@@ -2,11 +2,12 @@
   "type": "ecmascript",
   "id": "svtplay",
   "file": "svtplay.js",
-  "showtimeVersion": "4.2",
-  "version": "3.0",
+  "showtimeVersion": "4.9.389",
+  "version": "4.0",
   "category": "video",
   "author": "Andreas Öman, Erik Ahlner",
   "title": "SVT Play",
   "icon": "svtplay_square.png",
-  "synopsis": "Sveriges Television online video"
+  "synopsis": "Sveriges Television online video",
+  "regions": ["SE", "NO", "DK", "FI"]
 }
