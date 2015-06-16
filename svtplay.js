@@ -42,6 +42,13 @@ plugin.addURI("svtplay:start", function(page) {
   addlink('/nyheter', 'Nyheter');
   addlink('/samhalleochfakta', 'Samhälle och fakta');
   addlink('/sport', 'Sport');
+  page.appendItem(null, 'separator', { title: "Kanaler" });
+  page.appendItem(site + '/kanaler/svt1', 'video', { title: "SVT1" });
+  page.appendItem(site + '/kanaler/svt2', 'video', { title: "SVT2" });
+  page.appendItem(site + '/kanaler/barnkanalen', 'video', { title: "Barnkanalen" });
+  page.appendItem(site + '/kanaler/svt24', 'video', { title: "SVT24" });
+  page.appendItem(site + '/kanaler/kunskapskanalen', 'video', { title: "Kunskapskanalen" });
+
 });
 
 
@@ -70,17 +77,25 @@ function getTitleFromDom(dom) {
   return title.textContent;
 }
 
-
-plugin.addURI('http://www\.svtplay\.se/video/(.*)', function(page, path) {
+function playLink(page, category, path)
+{
   page.type = "video";
 
-  var json = http.request(site + '/video/' + path, {
+  var json = http.request(site + '/' + category + '/' + path, {
     args: { output: 'json' }
   });
   var meta = JSON.parse(json);
   var url = getVideoUrl(meta);
   page.loading = false;
   page.source = url;
+}
+
+plugin.addURI('http://www\.svtplay\.se/video/(.*)', function(page, path) {
+  playLink(page, 'video', path);
+});
+
+plugin.addURI('http://www\.svtplay\.se/kanaler/(.*)', function(page, path) {
+  playLink(page, 'kanaler', path);
 });
 
 
