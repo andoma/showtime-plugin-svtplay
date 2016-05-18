@@ -27,27 +27,48 @@ plugin.createService("SVT Play", "svtplay:start", "tv", true,
 plugin.addURI("svtplay:start", function(page) {
 
   page.type = "directory";
-  page.contents = "items";
-  page.metadata.logo = plugin.path + "svtplay.png";
+  page.contents = "grid";
+  page.metadata.icon = plugin.path + "svtplay.png";
   page.metadata.title = "SVT Play";
 
-  function addlink(href, title) {
-    page.appendItem(site + href, 'directory', { title: title });
+  function addlink(href, title, image) {
+    page.appendItem(site + href, 'directory', {
+      title: title,
+      backdrop: plugin.path + "/static/" + image
+    });
   }
 
-  addlink('/barn', 'Barn');
-  addlink('/dokumentar', 'Dokumentär');
-  addlink('/filmochdrama', 'Film och drama');
-  addlink('/kulturochnoje', 'Kultur och nöje');
-  addlink('/nyheter', 'Nyheter');
-  addlink('/samhalleochfakta', 'Samhälle och fakta');
-  addlink('/sport', 'Sport');
-  page.appendItem(null, 'separator', { title: "Kanaler" });
-  page.appendItem(site + '/kanaler/svt1', 'video', { title: "SVT1" });
-  page.appendItem(site + '/kanaler/svt2', 'video', { title: "SVT2" });
-  page.appendItem(site + '/kanaler/barnkanalen', 'video', { title: "Barnkanalen" });
-  page.appendItem(site + '/kanaler/svt24', 'video', { title: "SVT24" });
-  page.appendItem(site + '/kanaler/kunskapskanalen', 'video', { title: "Kunskapskanalen" });
+  page.appendItem(site + '/kanaler/svt1', 'video', {
+    icon: plugin.path + "static/svt1.png"
+  });
+
+  page.appendItem(site + '/kanaler/svt2', 'video', {
+    icon: plugin.path + "static/svt2.png"
+  });
+
+
+  page.appendItem(site + '/kanaler/barnkanalen', 'video', {
+    icon: plugin.path + "static/barnkanalen.png"
+  });
+
+  page.appendItem(site + '/kanaler/svt24', 'video', {
+    icon: plugin.path + "static/svt24.png"
+  });
+
+  page.appendItem(site + '/kanaler/kunskapskanalen', 'video', {
+    icon: plugin.path + "static/kunskapskanalen.png"
+  });
+
+  page.appendItem(null, 'separator', { title: "Kategorier" });
+
+  addlink('/barn', 'Barn', 'barn.jpg');
+  addlink('/dokumentar', 'Dokumentär', "dokumentar.jpg");
+  addlink('/genre/drama', 'Drama', "drama.jpg");
+  addlink('/genre/humor', 'Humor', "humor.jpg");
+  addlink('/kulturochnoje', 'Kultur och nöje', 'kulturochnoje.jpg');
+  addlink('/nyheter', 'Nyheter', 'nyheter.jpg');
+  addlink('/samhalleochfakta', 'Samhälle och fakta', 'samhalleochfakta.jpg');
+  addlink('/sport', 'Sport', 'sport.jpg');
 
 });
 
@@ -137,6 +158,37 @@ plugin.addURI('http://www\.svtplay\.se/(.*)', function(page, path) {
         title: title
       });
     }
+    return;
   }
+
+  var playgrid = dom.root.getElementByClassName('play_grid')[0];
+  if(playgrid) {
+    var articles = playgrid.getElementByTagName('article');
+    for(var i = 0; i < articles.length; i++) {
+      var article = articles[i];
+
+      var a = article.getElementByTagName('a')[0];
+      var href = a.attributes.getNamedItem('href').value;
+
+      var h3 = article.getElementByClassName('play_videolist-element__title')[0];
+      if(h3) {
+        var titlespan = h3.getElementByTagName('span')[0];
+        if(titlespan)
+          var title = titlespan.textContent;
+      }
+
+      if(title) {
+        
+        var type = href.substring(0, 6) == '/video' ? 'video' : 'directory';
+
+        page.appendItem(site + href, type, {
+          title: title
+        });
+      }
+    }
+
+    return;
+  }
+
 
 });
