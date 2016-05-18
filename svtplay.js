@@ -27,7 +27,7 @@ plugin.createService("SVT Play", "svtplay:start", "tv", true,
 plugin.addURI("svtplay:start", function(page) {
 
   page.type = "directory";
-  page.contents = "grid";
+  page.model.contents = "grid";
   page.metadata.icon = plugin.path + "svtplay.png";
   page.metadata.title = "SVT Play";
 
