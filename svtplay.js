@@ -34,7 +34,7 @@ plugin.addURI("svtplay:start", function(page) {
   function addlink(href, title, image) {
     page.appendItem(site + href, 'directory', {
       title: title,
-      backdrop: plugin.path + "/static/" + image
+      backdrop: plugin.path + "static/" + image
     });
   }
 
